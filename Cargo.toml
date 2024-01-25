@@ -80,8 +80,5 @@ path="src/lib.rs"
 name="egui-test"
 required-features = [ "desktop" ]
 
-[target.aarch64-linux-android]
-linker = "/usr/lib/android-sdk/ndk/android-ndk-r26b/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang"
-
 [target.aarch64-linux-android.dependencies]
 openssl = { version = "*", features = ["vendored"] }
