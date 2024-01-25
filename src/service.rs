@@ -160,13 +160,7 @@ pub async fn notary_service<T: AsyncWrite + AsyncRead + Send + Unpin + 'static>(
 ) -> Result<(), NotaryServerError> {
     debug!(?session_id, "Starting notarization...");
 
-    let mut config_builder = VerifierConfig::builder();
-
-    config_builder = config_builder.id(session_id);
-
-    if let Some(max_transcript_size) = max_transcript_size {
-        config_builder = config_builder.max_transcript_size(max_transcript_size);
-    }
+    let config_builder = VerifierConfig::builder();
 
     let config = config_builder.build()?;
 

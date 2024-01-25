@@ -29,10 +29,6 @@ use eyre::{eyre, Result};
 use structopt::StructOpt;
 use tracing::debug;
 
-use notary_server::{
-    init_tracing, parse_config_file, run_server, CliFields, NotaryServerError,
-    NotaryServerProperties,
-};
 #[cfg(target_os = "android")]
 use winit::platform::android::activity::AndroidApp;
 
@@ -48,6 +44,23 @@ const INITIAL_HEIGHT: u32 = 1080;
 /// A custom event type for the winit app.
 enum Event {
     RequestRedraw,
+}
+
+#[tokio::main]
+async fn serve() -> Result<(), NotaryServerError> {
+    // Load command line arguments which contains the config file location
+    let cli_fields: CliFields = CliFields::from_args();
+    let config: NotaryServerProperties = parse_config_file(&cli_fields.config_file)?;
+
+    // Set up tracing for logging
+    init_tracing(&config).map_err(|err| eyre!("Failed to set up tracing: {err}"))?;
+
+    debug!(?config, "Server config loaded");
+
+    // Run the server
+    run_server(&config).await?;
+
+    Ok(())
 }
 
 /// Enable egui to request redraws via a custom Winit event...
@@ -91,16 +104,7 @@ fn create_window<T>(
     Some(window)
 }
 
-#[tokio::main]
 fn _main(event_loop: EventLoop<Event>) {
-    let cli_fields: CliFields = CliFields::from_args();
-    let config: NotaryServerProperties = parse_config_file(&cli_fields.config_file)?;
-    init_tracing(&config).map_err(|err| eyre!("Failed to set up tracing: {err}"))?;
-    debug!(?config, "Server config loaded");
-
-    // Run the server
-    run_server(&config).await?;
-    
     let ctx = egui::Context::default();
     let repaint_signal = RepaintSignal(std::sync::Arc::new(std::sync::Mutex::new(
         event_loop.create_proxy(),
